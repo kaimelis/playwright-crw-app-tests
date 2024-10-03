@@ -1,4 +1,72 @@
+# Dependency directories
 node_modules/
+/.pnp
+.pnp.js
+
+# Playwright specific
 /test-results/
 /playwright-report/
+/blob-report/
 /playwright/.cache/
+.trace
+.local-browsers/
+
+# Coverage reports
+/coverage/
+/tests/coverage-report
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+.atom/
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+/dist
+/build
+
+# Temporary files
+.tmp/
+.temp/
+
+# Miscellaneous
+*.pyc
+.eslintcache
+.cache/
+.gradle/
+yarn.lock
+nohup.out
+
+# Project specific (you might want to customize these)
+/demo/
+/packages/*/LICENSE
+/packages/*/NOTICE
+/packages/playwright/README.md
+/packages/playwright-test/README.md
+/packages/playwright-core/api.json
+/tests/installation/output/
+/tests/installation/.registry.json
+playwright.env
+
+# Allure reports (if you're using Allure for reporting)
+allure-results/
+allure-report/
