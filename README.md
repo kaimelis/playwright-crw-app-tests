@@ -17,8 +17,8 @@ To set up this project and run the Playwright tests, follow these steps:
 
 2. Clone this repository:
    ```
-   git clone <your-repository-url>
-   cd <your-repository-name>
+   git clone https://github.com/kaimelis/playwright-crw-app-tests.git
+   cd playwright-crw-app-tests
    ```
 
 3. Install dependencies using yarn:
@@ -30,6 +30,10 @@ To set up this project and run the Playwright tests, follow these steps:
    ```
    npx playwright install
    ```
+
+## Test Structure
+
+All Playwright tests can be found in the `tests` folder of this repository. Feel free to explore this folder to understand the structure and content of the tests.
 
 ## Running Tests
 
