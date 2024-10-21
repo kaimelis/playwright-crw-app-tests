@@ -8,7 +8,12 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@faker-js/faker": "^9.0.3",
     "@playwright/test": "^1.47.2",
-    "@types/node": "^22.7.4"
+    "@types/node": "^22.7.4",
+    "dotenv": "^16.4.5"
+  },
+  "dependencies": {
+    "lowdb": "^7.0.1"
   }
 }
