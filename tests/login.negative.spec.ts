@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { getRandomUser } from './utils/dbUtils';
+import { LoginPage } from './pages/LoginPage';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,74 +13,71 @@ if (!TEST_PASSWORD) {
 }
 
 let page: Page;
+let loginPage: LoginPage;
 
 test.beforeEach(async ({ browser }) => {
   page = await browser.newPage();
+  loginPage = new LoginPage(page);
 });
 
 test.afterEach(async () => {
   await page.close();
 });
 
-test('should fail login with incorrect password', async ({ page }) => {
+test('should fail login with incorrect password', async () => {
   const user = await getRandomUser();
 
-  await page.goto(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
-
-  await page.getByRole('textbox', { name: 'Username' }).fill(user.username);
-  await page.locator('#password').fill(INCORRECT_PASSWORD);
-
-  await page.getByRole('button', { name: 'SIGN IN' }).click();
+  await loginPage.navigate();
+  await loginPage.login(user.username, INCORRECT_PASSWORD);
 
   // Assert that we're still on the login page
-  await expect(page).toHaveURL(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
+  await expect(loginPage.isOnPage(process.env.LOGIN_PATH || '')).toBeTruthy();
 
   // Check for an error message
-  const errorMessage = await page.getByText('Username or password is invalid');
+  const errorMessage = await loginPage.getErrorMessage();
   await expect(errorMessage).toBeVisible();
 });
 
-test('should fail login with non-existent username', async ({ page }) => {
+test('should fail login with non-existent username', async () => {
   const nonExistentUsername = 'nonexistent_user_' + Date.now();
 
-  await page.goto(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
-
-  await page.getByRole('textbox', { name: 'Username' }).fill(nonExistentUsername);
-  await page.locator('#password').fill(TEST_PASSWORD);
-
-  await page.getByRole('button', { name: 'SIGN IN' }).click();
+  await loginPage.navigate();
+  await loginPage.login(nonExistentUsername, TEST_PASSWORD);
 
   // Assert that we're still on the login page
-  await expect(page).toHaveURL(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
+  await expect(loginPage.isOnPage(process.env.LOGIN_PATH || '')).toBeTruthy();
 
   // Check for an error message
-  const errorMessage = await page.getByText('Username or password is invalid');
+  const errorMessage = await loginPage.getErrorMessage();
   await expect(errorMessage).toBeVisible();
 });
 
-test('should fail login with empty username', async ({ page }) => {
-  await page.goto(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
+test('should fail login with empty username', async () => {
+  await loginPage.navigate();
 
-  await page.locator('#password').fill(TEST_PASSWORD);
-
-  // Assert that we're still on the login page
-  await expect(page).toHaveURL(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
-
-  // Check for an error message
-  const errorMessage = await page.getByText('Username is required');
-  await expect(errorMessage).toBeVisible();
+   await loginPage.fillUsername('');
+   await loginPage.fillPassword(TEST_PASSWORD);
+   
+   await loginPage.fillPassword(TEST_PASSWORD);
+ 
+   await expect(loginPage.isOnPage(process.env.LOGIN_PATH || '')).toBeTruthy();
+ 
+   const errorMessage = await loginPage.getValidationError('Username is required');
+   await expect(errorMessage).toBeVisible();
 });
 
-test('should fail login with 3 char password', async ({ page }) => {
+test('should fail login with short password', async () => {
   const user = await getRandomUser();
 
-  await page.goto(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
-  await page.locator('#password').fill(SHORT_PASSWORD);
-  await page.getByRole('textbox', { name: 'Username' }).fill(user.username);
+  await loginPage.navigate();
 
-  await expect(page).toHaveURL(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
+  await loginPage.fillUsername(user.username);
+  await loginPage.fillPassword(SHORT_PASSWORD);
+  
+  await loginPage.fillUsername(user.username);
 
-  // Check for an error message
-  const errorMessage = await page.getByText('Password must contain at least 4 characters');
+  await expect(loginPage.isOnPage(process.env.LOGIN_PATH || '')).toBeTruthy();
+
+  const errorMessage = await loginPage.getValidationError('Password must contain at least 4 characters');
   await expect(errorMessage).toBeVisible();
 });

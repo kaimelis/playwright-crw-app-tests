@@ -1,12 +1,11 @@
-import { test, expect,  type Page  } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import dotenv from 'dotenv';
 import { faker } from '@faker-js/faker';
+import { SignUpPage } from './pages/SignUpPage';
+import { LoginPage } from './pages/LoginPage';
 
 dotenv.config();
 
-const BASE_URL = process.env.BASE_URL;
-const SIGN_UP_PATH = process.env.SIGN_UP_PATH;
-const SIGN_IN_PATH = process.env.LOGIN_PATH;
 const TEST_PASSWORD = process.env.PASSWORD;
 
 if (!TEST_PASSWORD) {
@@ -20,15 +19,17 @@ function createRandomUser() {
     firstName,
     lastName,
     username: faker.internet.userName({ firstName, lastName }),
-    password: faker.internet.password({ length: 12, memorable: true })
   };
 }
 
 let page: Page;
+let signUpPage: SignUpPage;
+let loginPage: LoginPage;
 
 test.beforeEach(async ({ browser }) => {
   page = await browser.newPage();
-  await page.goto(`${BASE_URL}/signup`);
+  signUpPage = new SignUpPage(page);
+  loginPage = new LoginPage(page);
 });
 
 test.afterEach(async () => {
@@ -36,32 +37,40 @@ test.afterEach(async () => {
 });
 
 test('should create a user and login successfully', async () => {
-  // Generate a dynamic username
-  const username = `testuser_${Date.now()}`;
   const user = createRandomUser();
+
   // Sign Up
-  await page.getByRole('textbox', { name: 'First Name' }).fill(user.firstName);
-  await page.getByRole('textbox', { name: 'Last Name' }).fill(user.lastName);
-  await page.getByRole('textbox', { name: 'Username' }).fill(user.username);
+  await signUpPage.navigate();
+  await signUpPage.signUp(user.firstName, user.lastName, user.username, TEST_PASSWORD);
 
-  await page.locator('#password').fill(TEST_PASSWORD);
-  await page.locator('input[name="confirmPassword"]').fill(TEST_PASSWORD);
+  // Check that we're redirected to the Sign In page
+  await expect(page).toHaveURL(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
 
-  await page.getByRole('button', { name: 'SIGN UP' }).click();
+  // Sign In
+  await loginPage.navigate();
+  await loginPage.login(user.username, TEST_PASSWORD);
 
-  // Tikrinam, kad po SIGN UP button atsidarytu Sign In puslapis 
-  await expect(page).toHaveURL(`${BASE_URL}/${SIGN_IN_PATH}`);
-
-  // Einam i sign in puslapi
-  await page.goto(`${BASE_URL}/${SIGN_IN_PATH}`);
-
-  await page.getByRole('textbox', { name: 'Username' }).fill(user.username);
-  await page.locator('#password').fill(TEST_PASSWORD);
-  await page.getByRole('button', { name: 'SIGN IN' }).click();
-
-  await expect(page).toHaveURL(`${BASE_URL}`);
+  // Check successful login
+  await expect(page).toHaveURL(`${process.env.BASE_URL}`);
   const logoutButton = await page.getByRole('button', { name: 'Logout' });
   await expect(logoutButton).toBeVisible();
 });
 
+test('should fail signup with short password', async () => {
+  const user = createRandomUser();
+  const shortPassword = '123';
 
+  await signUpPage.navigate();
+  
+  await signUpPage.fillFirstName(user.firstName);
+  await signUpPage.fillLastName(user.lastName);
+  await signUpPage.fillUsername(user.username);
+  await signUpPage.fillPassword(shortPassword);
+  
+  await signUpPage.fillUsername(user.username);
+
+  await expect(signUpPage.isOnPage(process.env.SIGN_UP_PATH || '')).toBeTruthy();
+
+  const errorMessage = await signUpPage.getValidationError('Password must contain at least 4 characters');
+  await expect(errorMessage).toBeVisible();
+});

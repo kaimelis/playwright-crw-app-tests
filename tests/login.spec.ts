@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { getRandomUser } from './utils/dbUtils';
+import { LoginPage } from './pages/LoginPage';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -10,34 +11,55 @@ if (!TEST_PASSWORD) {
 }
 
 let page: Page;
+let loginPage: LoginPage;
 
 test.beforeEach(async ({ browser }) => {
   page = await browser.newPage();
+  loginPage = new LoginPage(page);
 });
 
 test.afterEach(async () => {
   await page.close();
 });
 
-test('should login successfully with database user credentials', async ({ page }) => {
-  // Get a random user from the database
+test('should login successfully with database user credentials', async () => {
   const user = await getRandomUser();
 
-  // Navigate to the login page
-  await page.goto(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
-
-  // Fill in the username and password
-  await page.getByRole('textbox', { name: 'Username' }).fill(user.username);
-  await page.locator('#password').fill(TEST_PASSWORD);
-
-  // Click the login button
-  await page.getByRole('button', { name: 'SIGN IN' }).click();
+  await loginPage.navigate();
+  await loginPage.login(user.username, TEST_PASSWORD);
 
   // Assert successful login
-  // Check if we're redirected to the main page
   await expect(page).toHaveURL(`${process.env.BASE_URL}`);
   
-  // Check if the Logout button is visible on the main page
   const logoutButton = await page.getByRole('button', { name: 'Logout' });
   await expect(logoutButton).toBeVisible();
+});
+
+test('should fail login with incorrect password', async () => {
+  const user = await getRandomUser();
+  const incorrectPassword = 'incorrect_password';
+
+  await loginPage.navigate();
+  await loginPage.login(user.username, incorrectPassword);
+
+  // Assert that we're still on the login page
+  await expect(page).toHaveURL(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
+
+  // Check for an error message
+  const errorMessage = await loginPage.getErrorMessage();
+  await expect(errorMessage).toBeVisible();
+});
+
+test('should fail login with non-existent username', async () => {
+  const nonExistentUsername = 'nonexistent_user_' + Date.now();
+
+  await loginPage.navigate();
+  await loginPage.login(nonExistentUsername, TEST_PASSWORD);
+
+  // Assert that we're still on the login page
+  await expect(page).toHaveURL(`${process.env.BASE_URL}/${process.env.LOGIN_PATH}`);
+
+  // Check for an error message
+  const errorMessage = await loginPage.getErrorMessage();
+  await expect(errorMessage).toBeVisible();
 });
