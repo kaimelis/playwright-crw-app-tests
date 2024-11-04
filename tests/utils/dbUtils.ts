@@ -6,11 +6,14 @@ dotenv.config();
 type User = {
   id: string
   username: string
+  firstName: string
+  lastName: string
+  balance : number
+  avatar: string
 }
 
 type DbSchema = {
   users: User[]
-  // Add other collections as necessary
 }
 
 const dbFile = path.join(__dirname, '../' + process.env.PATH_TO_CYPRES +  '/data/database.json');
@@ -19,6 +22,7 @@ export async function getRandomUser(): Promise<User> {
   try {
     // Check if the file exists
     await fs.access(dbFile);
+    console.log('✅ Database file exists');
   } catch (error) {
     console.error(`Error accessing database file: ${dbFile}`);
     console.error(`Current working directory: ${process.cwd()}`);

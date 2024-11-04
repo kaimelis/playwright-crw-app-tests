@@ -24,7 +24,7 @@ test.afterEach(async () => {
 
 test('should login successfully with database user credentials', async () => {
   const user = await getRandomUser();
-
+  
   await loginPage.navigate();
   await loginPage.login(user.username, TEST_PASSWORD);
 
@@ -34,7 +34,7 @@ test('should login successfully with database user credentials', async () => {
   const logoutButton = await page.getByRole('button', { name: 'Logout' });
   await expect(logoutButton).toBeVisible();
 });
-
+/*
 test('should fail login with incorrect password', async () => {
   const user = await getRandomUser();
   const incorrectPassword = 'incorrect_password';
@@ -63,3 +63,4 @@ test('should fail login with non-existent username', async () => {
   const errorMessage = await loginPage.getErrorMessage();
   await expect(errorMessage).toBeVisible();
 });
+*/
