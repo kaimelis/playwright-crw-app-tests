@@ -6,6 +6,12 @@ export class HomePage extends BasePage {
     userName: '[data-test="sidenav-username"]',
     userFullName: '[data-test="sidenav-user-full-name"]',
     accountBalance: '[data-test="sidenav-user-balance"]',
+    // Add navigation selectors
+    homeNav: '[data-test="sidenav-home"]',
+    userSettingsNav: '[data-test="sidenav-user-settings"]',
+    bankAccountsNav: '[data-test="sidenav-bankaccounts"]',
+    notificationsNav: '[data-test="sidenav-notifications"]',
+    signOutNav: '[data-test="sidenav-signout"]'
   };
 
   constructor(page: Page) {
@@ -24,11 +30,29 @@ export class HomePage extends BasePage {
     return this.page.locator(this.selectors.accountBalance);
   }
 
+  // Navigation methods
+  getHomeNav(): Locator {
+    return this.page.locator(this.selectors.homeNav);
+  }
+
+  getUserSettingsNav(): Locator {
+    return this.page.locator(this.selectors.userSettingsNav);
+  }
+
+  getBankAccountsNav(): Locator {
+    return this.page.locator(this.selectors.bankAccountsNav);
+  }
+
+  getNotificationsNav(): Locator {
+    return this.page.locator(this.selectors.notificationsNav);
+  }
+
+  getSignOutNav(): Locator {
+    return this.page.locator(this.selectors.signOutNav);
+  }
+
   async navigate() {
-    // Pass empty string for root route or just call goto with base URL
     await this.page.goto(process.env.BASE_URL || 'http://localhost:3000');
-    // Or alternatively:
-    // await super.navigate('');
   }
 
   async clickTab(tabName: 'everyone' | 'friends' | 'mine') {
